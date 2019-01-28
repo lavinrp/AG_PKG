@@ -1,118 +1,55 @@
 #include <iostream>
 #include <Poco/URI.h>
-#include <Poco/Net/HTTPStreamFactory.h>
-#include <Poco/Net/FTPStreamFactory.h>
-#include <Poco/URIStreamOpener.h>
-#include <Poco/StreamCopier.h>
-#include <Poco/Net/HTTPClientSession.h>
-#include <Poco/Net/HTTPRequest.h>
-#include <Poco/Net/HTTPResponse.h>
 
 #include <Poco/Zip/Decompress.h>
 #include <Poco/Delegate.h>
 
-#include <memory>
 #include <fstream>
-#include <iostream>
+#include <string>
 
-class ZipThing
+void unzipFileToDest(Poco::Path compressedPath, const std::string& destination)
 {
-public:
-    void onZipError(const void* pSender, std::pair<const Poco::Zip::ZipLocalFileHeader, const std::string>& info)
-    {
-        std::cout << "hey man. Errors here" << std::endl;
-    }
-    void DownloadDependencies(const std::string& uriString, const std::string& destination)
-    {
-        Poco::URI uri(uriString);
-        Poco::Net::HTTPClientSession session(uri.getHost(), uri.getPort());
-        Poco::Net::HTTPRequest req(Poco::Net::HTTPRequest::HTTP_GET, uriString, Poco::Net::HTTPMessage::HTTP_1_1);
-        session.sendRequest(req);
-        Poco::Net::HTTPResponse res;
-        std::istream& rs = session.receiveResponse(res);
-        Poco::Zip::Decompress dec(rs, Poco::Path(destination, Poco::Path::Style::PATH_GUESS));
-        // if an error happens invoke the ZipTest::onDecompressError method
-        dec.EError += Poco::Delegate<ZipThing, std::pair<const Poco::Zip::ZipLocalFileHeader, const std::string> >(this, &ZipThing::onZipError);
-        dec.decompressAllFiles();
-        dec.EError -= Poco::Delegate<ZipThing, std::pair<const Poco::Zip::ZipLocalFileHeader, const std::string> >(this, &ZipThing::onZipError);
-    } 
-};
-
-
-int main(int, char**) {
-    Poco::Net::HTTPStreamFactory::registerFactory();
-    Poco::Net::FTPStreamFactory::registerFactory();
-
-    try
-    {
-        ZipThing z;
-        z.DownloadDependencies("https://github.com/lavinrp/GameBackbone/archive/master.zip", "/home/lavinrp/hdd/programming/cpp/AG_PKG/AG_PKG");
-    }
-    catch(const std::exception& e)
-    {
-        std::cerr << e.what() << '\n';
-    }
-
+    std::ifstream inp(compressedPath.toString().c_str(), std::ios::binary);
+    Poco::Zip::Decompress dec(inp, Poco::Path(destination, Poco::Path::Style::PATH_GUESS));
+    dec.decompressAllFiles();
 }
 
 
+int main(int, char**)
+{
+    std::string pathToZip;
+    std::cout << "Input the absolute path to the zipped AG_Dependencies: " << std::endl;
+    std::cin >> pathToZip;
 
-// download.cpp
+    std::string destinationPath;
+    std::cout << "Input the path to deposit the unzipped dependencies: " << std::endl;
+    std::cin >> destinationPath;
+    unzipFileToDest(pathToZip, destinationPath);
 
-// This sample demonstrates the URIStreamOpener class.
+    std::cout << "How will you be invoking CMake?\n[1] Visual Studio\n[2] Visual Studio Code\n[3] CMake Command Line" << std::endl;
+    int cMakeInterface;
+    std::cin >> cMakeInterface;
 
-// Copyright (c) 2005-2006, Applied Informatics Software Engineering GmbH.
-// and Contributors.
+    switch (cMakeInterface)
+    {
+        case 1:
+        {
+            std::cout << "VS" << std::endl;
+            break;
+        }
+        case 2:
+        {
+            std::cout << "VSC" << std::endl;
 
-// SPDX-License-Identifier:	BSL-1.0
+            break;
+        }
+    
+        default:
+        {
+            std::cout << "CMD" << std::endl;
+            break;
+        }
+    }
 
-
-
-// #include "Poco/URIStreamOpener.h"
-// #include "Poco/StreamCopier.h"
-// #include "Poco/Path.h"
-// #include "Poco/URI.h"
-// #include "Poco/Exception.h"
-// #include "Poco/Net/HTTPStreamFactory.h"
-// #include "Poco/Net/FTPStreamFactory.h"
-// #include <memory>
-// #include <iostream>
-
-
-// using Poco::URIStreamOpener;
-// using Poco::StreamCopier;
-// using Poco::Path;
-// using Poco::URI;
-// using Poco::Exception;
-// using Poco::Net::HTTPStreamFactory;
-// using Poco::Net::FTPStreamFactory;
-
-
-// int main(int argc, char** argv)
-// {
-// 	HTTPStreamFactory::registerFactory();
-// 	FTPStreamFactory::registerFactory();
-	
-// 	if (argc != 2)
-// 	{
-// 		Path p(argv[0]);
-// 		std::cerr << "usage: " << p.getBaseName() << " <uri>" << std::endl;
-// 		std::cerr << "       Download <uri> to standard output." << std::endl;
-// 		std::cerr << "       Works with http, ftp and file URIs." << std::endl;
-// 		return 1;
-// 	}
-
-// 	try
-// 	{
-// 		URI uri(argv[1]);
-// 		std::unique_ptr<std::istream> pStr(URIStreamOpener::defaultOpener().open(uri));
-// 		StreamCopier::copyStream(*pStr.get(), std::cout);
-// 	}
-// 	catch (Exception& exc)
-// 	{
-// 		std::cerr << exc.displayText() << std::endl;
-// 		return 1;
-// 	}
-		
-// 	return 0;
-// }
+    return 0;
+}
