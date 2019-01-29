@@ -1,13 +1,19 @@
-#include <iostream>
-#include <Poco/URI.h>
 
-#include <Poco/Zip/Decompress.h>
+#include "Poco/Exception.h"
+#include "Poco/Net/HTTPStreamFactory.h"
+#include "Poco/StreamCopier.h"
+#include "Poco/URI.h"
+#include "Poco/URIStreamOpener.h"
 #include <Poco/Delegate.h>
+#include <Poco/Zip/Decompress.h>
+#include <Poco/Net/HTTPSStreamFactory.h>
 
 #include <fstream>
+#include <iostream>
+#include <memory>
 #include <string>
 
-void unzipFileToDest(Poco::Path compressedPath, const std::string& destination)
+void UnzipFileToDest(Poco::Path compressedPath, const std::string& destination)
 {
     std::ifstream inp(compressedPath.toString().c_str(), std::ios::binary);
     Poco::Zip::Decompress dec(inp, Poco::Path(destination, Poco::Path::Style::PATH_GUESS));
@@ -15,8 +21,42 @@ void unzipFileToDest(Poco::Path compressedPath, const std::string& destination)
 }
 
 
+void DownloadFile(const std::string& uriToDownload, const std::string& filePathToSave)
+{
+    std::string content {};
+    std::ofstream outFile(filePathToSave, std::ofstream::binary);
+
+    try {
+        auto& opener = Poco::URIStreamOpener::defaultOpener();
+        auto uri = Poco::URI { uriToDownload };
+        auto is = std::shared_ptr<std::istream> { opener.open(uri) };
+        Poco::StreamCopier::copyStream(*(is.get()), outFile);
+        // Poco::StreamCopier::copyToString(*(is.get()), content);
+    } catch (Poco::Exception& e) {
+        std::cerr << e.displayText() << std::endl;
+    }
+
+    //std::cout << content << std::endl;
+    //outFile << content;
+}
+
 int main(int, char**)
 {
+    // download file
+    Poco::Net::HTTPSStreamFactory::registerFactory();
+    Poco::Net::HTTPStreamFactory::registerFactory();
+
+
+    std::string pathToDownload;
+    std::cout << "URL to download" << std::endl;
+    std::cin >> pathToDownload;
+    std::string pathToInstallTo;
+    std::cout << "install path" << std::endl;
+    std::cin >> pathToInstallTo;
+//    Poco::Net::Factory
+    DownloadFile(pathToDownload, pathToInstallTo);
+
+    // query user for unzip information
     std::string pathToZip;
     std::cout << "Input the absolute path to the zipped AG_Dependencies: " << std::endl;
     std::cin >> pathToZip;
@@ -24,7 +64,7 @@ int main(int, char**)
     std::string destinationPath;
     std::cout << "Input the path to deposit the unzipped dependencies: " << std::endl;
     std::cin >> destinationPath;
-    unzipFileToDest(pathToZip, destinationPath);
+    UnzipFileToDest(pathToZip, destinationPath);
 
     std::cout << "How will you be invoking CMake?\n[1] Visual Studio\n[2] Visual Studio Code\n[3] CMake Command Line" << std::endl;
     int cMakeInterface;
