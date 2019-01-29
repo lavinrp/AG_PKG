@@ -22,12 +22,12 @@ find_library(
 	PATH_SUFFIXES
 		Release
 	PATHS
-		/usr
-		/usr/local
-		${NANA_DIR}
-		${NANA_ROOT}
-		$ENV{NANA_DIR}
-		$ENV{NANA_ROOT}
+		/usr/lib
+		/usr/local/lib
+		${NANA_DIR}/lib
+		${NANA_ROOT}/lib
+		$ENV{NANA_DIR}/lib
+		$ENV{NANA_ROOT}/lib
 )
 
 find_library(
@@ -36,12 +36,12 @@ find_library(
 	PATH_SUFFIXES
         Debug
 	PATHS
-		/usr
-		/usr/local
-		${NANA_DIR}
-		${NANA_ROOT}
-		$ENV{NANA_DIR}
-		$ENV{NANA_ROOT}
+		/usr/lib
+		/usr/local/lib
+		${NANA_DIR}/lib
+		${NANA_ROOT}/lib
+		$ENV{NANA_DIR}/lib
+		$ENV{NANA_ROOT}/lib
 )
 
 if(NANA_LIBRARY_RELEASE AND NANA_LIBRARY_DEBUG)
@@ -59,7 +59,9 @@ if(NANA_LIBRARY_DEBUG AND NOT NANA_LIBRARY_RELEASE)
 endif()
 
 if(NOT NANA_INCLUDE_DIR OR NOT NANA_LIBRARY)
-	if(NANA_FIND_REQUIRED)
+	message("nana include dir: ${NANA_INCLUDE_DIR}")
+	message("nana library: ${NANA_LIBRARY}")
+	if(Nana_FIND_REQUIRED)
 		message(FATAL_ERROR "nana not found.")
 	elseif(NOT NANA_FIND_QUIETLY)
 		message("nana not found.")
