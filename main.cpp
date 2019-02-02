@@ -8,6 +8,11 @@
 #include <Poco/Zip/Decompress.h>
 #include <Poco/Net/HTTPSStreamFactory.h>
 
+
+// #include <nana/gui.hpp>
+// #include <nana/gui/widgets/label.hpp>
+
+
 #include <fstream>
 #include <iostream>
 #include <memory>
@@ -40,7 +45,7 @@ void DownloadFile(const std::string& uriToDownload, const std::string& filePathT
     //outFile << content;
 }
 
-int main(int, char**)
+int TextMode()
 {
     // download file
     Poco::Net::HTTPSStreamFactory::registerFactory();
@@ -53,7 +58,6 @@ int main(int, char**)
     std::string pathToInstallTo;
     std::cout << "install path" << std::endl;
     std::cin >> pathToInstallTo;
-//    Poco::Net::Factory
     DownloadFile(pathToDownload, pathToInstallTo);
 
     // query user for unzip information
@@ -92,4 +96,24 @@ int main(int, char**)
     }
 
     return 0;
+}
+
+int GuiMode()
+{
+    // nana::form mainForm;
+    // mainForm.caption();
+    // //nana::label
+    // return 0;
+}
+
+int main(int argc, char**)
+{
+    if (argc == 0)
+    {
+        return TextMode();
+    }
+    else
+    {
+        return GuiMode();
+    }
 }
